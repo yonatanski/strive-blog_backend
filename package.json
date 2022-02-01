@@ -1,12 +1,12 @@
 {
-  "name": "M5-D2_HW-STRIVE_BLOG",
+  "name": "m5-d2_hw-strive_blog",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -e js -r dotenv/config ./src/server.js",
+    "dev": "nodemon -r dotenv/config -e js ./src/server.js",
     "start": "node ./src/server.js"
   },
   "repository": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/yonatanski/M5-D2_HW-STRIVE_BLOG#readme",
   "dependencies": {
+    "cloudinary": "^1.28.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "express-list-endpoints": "^6.0.0",
@@ -28,6 +29,7 @@
     "fs-extra": "^10.0.0",
     "http-errors": "^2.0.0",
     "multer": "^1.4.4",
+    "multer-storage-cloudinary": "^4.0.0",
     "uniqid": "^5.4.0"
   },
   "devDependencies": {

@@ -6,8 +6,19 @@ import createHttpError from "http-errors"
 import { readBlogPostJson, writeBlogPostJson } from "../../lib/fs-tools.js"
 import { uploadFile, uploadAvatarFile } from "../../lib/fs-tools.js"
 import multer from "multer" // it is middleware
+import { v2 as cloudinary } from "cloudinary"
+import { CloudinaryStorage } from "multer-storage-cloudinary"
 
 const blogpostRouter = express.Router()
+
+const cloudinaryUploader = multer({
+  storage: new CloudinaryStorage({
+    cloudinary, // search automatically for process.env.CLOUDINARY_URL
+    params: {
+      folder: "blogpost",
+    },
+  }),
+}).single("cover")
 
 // ================================CREATING END POINT METHODS===========================
 
@@ -129,21 +140,13 @@ blogpostRouter.get("/:id/comments", async (req, res, next) => {
 // ===========================//============================
 
 // ===========================  for file upload============================
-blogpostRouter.patch("/:id/uploadSingleCover", multer().single("cover"), uploadFile, async (req, res, next) => {
+blogpostRouter.patch("/:id/uploadSingleCover", cloudinaryUploader, async (req, res, next) => {
   try {
-    const blogPostJson = await readBlogPostJson() //reading  blogPostJson is (array of object) =--> [{--},{--},{--},{--},{--}]
+    const blogPostJson = await readBlogPostJson()
     const index = blogPostJson.findIndex((blog) => blog.id == req.params.id)
-    // console.log("this is index", index)
-
     const blogToModify = blogPostJson[index]
-    // console.log("this is index 2", bookToModify)
-
-    const UpdatedReqBody = req.body // incoming change inputted by user from FE
-    // console.log("this is req.body", UpdatedReqBody)
-
-    const updatedBlog = { ...blogToModify, cover: req.file, updatedAt: new Date(), id: req.params.id } // union of two bodies
-    // console.log("this is updateBook", updatedBlog)
-
+    // const UpdatedReqBody = req.body
+    const updatedBlog = { ...blogToModify, cover: req.file.path, updatedAt: new Date(), id: req.params.id }
     blogPostJson[index] = updatedBlog
     await writeBlogPostJson(blogPostJson)
 
@@ -152,6 +155,30 @@ blogpostRouter.patch("/:id/uploadSingleCover", multer().single("cover"), uploadF
     next(error)
   }
 })
+
+// blogpostRouter.patch("/:id/uploadSingleCover", multer().single("cover"), uploadFile, async (req, res, next) => {
+//   try {
+//     const blogPostJson = await readBlogPostJson() //reading  blogPostJson is (array of object) =--> [{--},{--},{--},{--},{--}]
+//     const index = blogPostJson.findIndex((blog) => blog.id == req.params.id)
+//     // console.log("this is index", index)
+
+//     const blogToModify = blogPostJson[index]
+//     // console.log("this is index 2", bookToModify)
+
+//     const UpdatedReqBody = req.body // incoming change inputted by user from FE
+//     // console.log("this is req.body", UpdatedReqBody)
+
+//     const updatedBlog = { ...blogToModify, cover: req.file, updatedAt: new Date(), id: req.params.id } // union of two bodies
+//     // console.log("this is updateBook", updatedBlog)
+
+//     blogPostJson[index] = updatedBlog
+//     await writeBlogPostJson(blogPostJson)
+
+//     res.send(updatedBlog)
+//   } catch (error) {
+//     next(error)
+//   }
+// })
 
 blogpostRouter.put("/:id/uploadSingleAvatar", multer().single("avatar"), uploadAvatarFile, async (req, res, next) => {
   try {
