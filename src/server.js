@@ -9,8 +9,27 @@ import { badReequestHandler, unauthorizedtHandler, notFoundHandler, genericError
 const server = express() // declearing server
 
 const publicFolderPath = join(process.cwd(), "./public/img/blogpost")
-server.use(cors())
-server.use(cors())
+
+// CORS FUNCTIONS --------------------------------
+const whitelist = [process.env.FE_LOCAL_URL, process.env.FE_PRODUCTION_URL]
+
+console.log("Permitted origins:")
+console.table(whitelist)
+const corsfUN = {
+  origin: function (origin, next) {
+    //cors is global middle ware so every request  we are able to detect the origin from this function
+
+    console.log("CURRENT", origin)
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      next(null, true)
+    } else {
+      next(new Error("CORS Error"))
+    }
+  },
+}
+
+server.use(cors(corsfUN))
+
 server.use(express.json()) // if this not worte here the request body will be undifend
 
 server.use(express.static(publicFolderPath)) // thid help us to use the link for images
@@ -28,7 +47,7 @@ server.use(genericErrorHandler)
 
 console.table(listEndpoints(server)) // TO PRINT THE END POINT TABLE ON TERMINAL
 
-const port = 3003
+const port = process.env.PORT || 3004
 server.listen(port, () => {
   console.log("SEREVER IS 🏃‍♂️🏃‍♂️🏃‍♂️🏃‍♂️ ON PORT", port)
 })

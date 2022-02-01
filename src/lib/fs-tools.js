@@ -34,7 +34,7 @@ export const uploadFile = (req, res, next) => {
 
     const pathToFile = join(publicFolderPath, fileName)
     fs.writeFileSync(pathToFile, buffer)
-    const link = `http://localhost:3003/${fileName}`
+    const link = `http://localhost:3004/${fileName}`
     req.file = link
     next()
     // console.log("from tools.js", req.file)
@@ -54,7 +54,7 @@ export const uploadAvatarFile = (req, res, next) => {
 
     const pathToFile = join(publicFolderPath, fileName)
     fs.writeFileSync(pathToFile, buffer)
-    const link = `http://localhost:3003/${fileName}`
+    const link = `http://localhost:3004/${fileName}`
     req.file = link
     next()
     // console.log("from tools.js", req.file)
