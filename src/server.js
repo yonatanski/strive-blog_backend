@@ -47,7 +47,7 @@ server.use(genericErrorHandler)
 
 console.table(listEndpoints(server)) // TO PRINT THE END POINT TABLE ON TERMINAL
 
-const port = process.env.PORT || 3004
+const port = process.env.PORT
 server.listen(port, () => {
   console.log("SEREVER IS 🏃‍♂️🏃‍♂️🏃‍♂️🏃‍♂️ ON PORT", port)
 })
