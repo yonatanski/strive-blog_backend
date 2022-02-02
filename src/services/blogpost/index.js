@@ -3,11 +3,15 @@ import uniqid from "uniqid" // genertae unique id => 3RD PARTY MODULE DOES NEED 
 import { blogPostValidatioMiddlewares } from "./validation.js"
 import { validationResult } from "express-validator"
 import createHttpError from "http-errors"
-import { readBlogPostJson, writeBlogPostJson } from "../../lib/fs-tools.js"
+import { readBlogPostJson, writeBlogPostJson, getBooksReadableStream } from "../../lib/fs-tools.js"
 import { uploadFile, uploadAvatarFile } from "../../lib/fs-tools.js"
 import multer from "multer" // it is middleware
 import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
+import { pipeline } from "stream"
+import { createGzip } from "zlib"
+
+import { getPDFReadableStream } from "../../lib/pdf-tools.js"
 
 const blogpostRouter = express.Router()
 
@@ -152,7 +156,7 @@ blogpostRouter.patch("/:id/uploadSingleCover", cloudinaryUploader, async (req, r
 
     res.send(updatedBlog)
   } catch (error) {
-    next(error)
+    console.log(error)
   }
 })
 
@@ -194,5 +198,48 @@ blogpostRouter.put("/:id/uploadSingleAvatar", multer().single("avatar"), uploadA
     next(error)
   }
 })
+
+blogpostRouter.get("/:id/downloadPDF", async (req, res, next) => {
+  try {
+    const BlogpostsJsonArray = await readBlogPostJson()
+
+    const specficAuthor = BlogpostsJsonArray.find((blog) => blog.id == req.params.id)
+
+    // res.send(specficAuthor)
+    const source = await getPDFReadableStream(specficAuthor)
+    res.setHeader("Content-Type", "application/pdf")
+    pipeline(source, res, (err) => {
+      if (err) {
+        console.log(err)
+        next(err)
+      }
+    })
+    source.end()
+  } catch (error) {
+    next(error)
+  }
+})
+blogpostRouter.get("/downloadJSON", async (req, res, next) => {
+  try {
+    // SOURCE (file on disk, http requests,...) --> DESTINATION (file on disk, terminal, http responses,...)
+
+    // In this example we are going to have: SOURCE (file on disk: books.json) --> DESTINATION (http response)
+
+    res.setHeader("Content-Disposition", "attachment; filename=books.json.gz") // This header tells the browser to open the "Save file on Disk" dialog
+
+    const source = await getBooksReadableStream()
+    console.log(source)
+    const transform = createGzip()
+    const destination = res
+
+    pipeline(source, transform, destination, (err) => {
+      if (err) next(err)
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ===========================  for PDF upload============================
 
 export default blogpostRouter

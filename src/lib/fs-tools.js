@@ -2,7 +2,7 @@ import fs, { write } from "fs-extra"
 import { fileURLToPath } from "url"
 import { dirname, join, extname } from "path"
 
-const { readJSON, writeJSON, writeFile } = fs // they come from fs extra and destructuring here  fs.readJSON and fs.writeJSON
+const { readJSON, writeJSON, writeFile, createReadStream } = fs // they come from fs extra and destructuring here  fs.readJSON and fs.writeJSON
 
 // =======================================finding daynamic path=======================================
 const dataFolderPath = join(dirname(fileURLToPath(import.meta.url)), "../data")
@@ -24,6 +24,8 @@ export const readAuthorJson = () => readJSON(full_Authors_JSONpath)
 export const writeAuthorJson = (content) => writeJSON(full_Authors_JSONpath, content)
 
 export const saveBlogPostPictures = (fileName, contentAsBuffer) => writeFile(join(publicFolderPath, fileName), contentAsBuffer)
+
+export const getBooksReadableStream = async () => createReadStream(full_blogPost_JSONpath)
 
 export const uploadFile = (req, res, next) => {
   try {

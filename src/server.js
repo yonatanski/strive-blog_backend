@@ -28,7 +28,7 @@ const corsfUN = {
   },
 }
 
-server.use(cors(corsfUN))
+server.use(cors())
 
 server.use(express.json()) // if this not worte here the request body will be undifend
 
@@ -47,7 +47,7 @@ server.use(genericErrorHandler)
 
 console.table(listEndpoints(server)) // TO PRINT THE END POINT TABLE ON TERMINAL
 
-const port = process.env.PORT
+const port = process.env.PORT || 3005
 server.listen(port, () => {
   console.log("SEREVER IS 🏃‍♂️🏃‍♂️🏃‍♂️🏃‍♂️ ON PORT", port)
 })
