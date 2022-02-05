@@ -24,6 +24,14 @@ const cloudinaryUploader = multer({
     },
   }),
 }).single("cover")
+const cloudinaryAvatarUploader = multer({
+  storage: new CloudinaryStorage({
+    cloudinary, // search automatically for process.env.CLOUDINARY_URL
+    params: {
+      folder: "blogpostAvatar",
+    },
+  }),
+}).single("avatar")
 
 // ================================CREATING END POINT METHODS===========================
 
@@ -42,6 +50,7 @@ blogpostRouter.post("/", blogPostValidatioMiddlewares, async (req, res, next) =>
       res.status(201).send({ id: newBlogPost.id })
     }
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -57,6 +66,7 @@ blogpostRouter.get("/", async (req, res, next) => {
       res.send(BlogpostsJsonArray)
     }
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -70,6 +80,7 @@ blogpostRouter.get("/:id", async (req, res, next) => {
 
     res.send(specficAuthor)
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -86,6 +97,7 @@ blogpostRouter.put("/:id", async (req, res, next) => {
     await writeBlogPostJson(BlogpostsJsonArray)
     res.send(updateBlogpost)
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -96,15 +108,16 @@ blogpostRouter.delete("/:id", async (req, res, next) => {
     const BlogpostsJsonArray = await readBlogPostJson()
     const remainingAuthors = BlogpostsJsonArray.filter((blog) => blog.id !== req.params.id)
     await writeBlogPostJson(remainingAuthors)
-    res.status(204).send(`USER SUCCESSFULLY DELETED`)
+    res.send({ message: `${req.params.id}is deleted sucessufully` })
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
 
 // ===========================  for comment============================
 
-blogpostRouter.put("/:id/comments", async (req, res, next) => {
+blogpostRouter.post("/:id/comments", async (req, res, next) => {
   try {
     const { text, userName } = req.body
     const comment = { id: uniqid(), text, userName, createdAt: new Date() }
@@ -118,7 +131,7 @@ blogpostRouter.put("/:id/comments", async (req, res, next) => {
     // const UpdatedReqBody = req.body // incoming change inputted by user from FE
     // console.log("this is req.body", UpdatedReqBody)
 
-    const updatedBlog = { ...blogToModify, comments: [...blogToModify.comments, comment], updatedAt: new Date(), id: req.params.id } // union of two bodies
+    const updatedBlog = { ...blogToModify, comments: [...blogToModify.comments, comment], id: req.params.id } // union of two bodies
     // console.log("this is updateBook", updatedBlog)
 
     blogPostJson[index] = updatedBlog
@@ -126,6 +139,7 @@ blogpostRouter.put("/:id/comments", async (req, res, next) => {
 
     res.send(updatedBlog)
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -139,12 +153,13 @@ blogpostRouter.get("/:id/comments", async (req, res, next) => {
     singleBlog.comments = singleBlog.comments || []
     res.send(singleBlog.comments)
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
 // ===========================//============================
 
-// ===========================  for file upload============================
+// ===========================  for picture upload============================
 blogpostRouter.patch("/:id/uploadSingleCover", cloudinaryUploader, async (req, res, next) => {
   try {
     const blogPostJson = await readBlogPostJson()
@@ -158,6 +173,23 @@ blogpostRouter.patch("/:id/uploadSingleCover", cloudinaryUploader, async (req, r
     res.send(updatedBlog)
   } catch (error) {
     console.log(error)
+    next(error)
+  }
+})
+
+blogpostRouter.put("/:id/uploadSingleAvatar", cloudinaryAvatarUploader, async (req, res, next) => {
+  try {
+    const blogPostJson = await readBlogPostJson() //array  json read//array json file reading
+    const index = blogPostJson.findIndex((blog) => blog.id === req.params.id) //find index id matched with params
+    const avatarlink = blogPostJson[index].author.name
+    console.log(avatarlink)
+    const updateAuthor = { ...blogPostJson[index], author: { name: avatarlink, avatar: req.file.path }, updatedAt: new Date(), id: req.params.id }
+    blogPostJson[index] = updateAuthor
+    await writeBlogPostJson(blogPostJson) //write//write
+    res.send(updateAuthor)
+  } catch (error) {
+    console.log(error)
+    next(error)
   }
 })
 
@@ -185,21 +217,6 @@ blogpostRouter.patch("/:id/uploadSingleCover", cloudinaryUploader, async (req, r
 //   }
 // })
 
-blogpostRouter.put("/:id/uploadSingleAvatar", multer().single("avatar"), uploadAvatarFile, async (req, res, next) => {
-  try {
-    const blogPostJson = await readBlogPostJson() //array  json read//array json file reading
-    const index = blogPostJson.findIndex((blog) => blog.id === req.params.id) //find index id matched with params
-    const avatarlink = blogPostJson[index].author.name
-    console.log(avatarlink)
-    const updateAuthor = { ...blogPostJson[index], author: { name: avatarlink, avatar: req.file }, updatedAt: new Date(), id: req.params.id }
-    blogPostJson[index] = updateAuthor
-    await writeBlogPostJson(blogPostJson) //write//write
-    res.send(updateAuthor)
-  } catch (error) {
-    next(error)
-  }
-})
-
 blogpostRouter.get("/:id/downloadPDF", async (req, res, next) => {
   try {
     const BlogpostsJsonArray = await readBlogPostJson()
@@ -217,6 +234,7 @@ blogpostRouter.get("/:id/downloadPDF", async (req, res, next) => {
     })
     source.end()
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -237,6 +255,7 @@ blogpostRouter.get("/downloadJSON", (req, res, next) => {
       if (err) next(err)
     })
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -256,6 +275,7 @@ blogpostRouter.get("/downloadCSV", (req, res, next) => {
     })
     res.send("ok")
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
@@ -266,6 +286,7 @@ blogpostRouter.get("/asyncPDF", async (req, res, next) => {
     // await sendEmail({ attachment: path }) // if generation of PDF is NOT async, I'm not sure that on this line here the PDF has been generated completely and correctly. If we do not await for the pdf to be generated and we send an email with that file, the result could be a corrupted PDF file
     res.send({ path })
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
