@@ -29,6 +29,7 @@ const corsfUN = {
 }
 
 server.use(cors())
+server.use(express.static("./dist"))
 
 server.use(express.json()) // if this not worte here the request body will be undifend
 

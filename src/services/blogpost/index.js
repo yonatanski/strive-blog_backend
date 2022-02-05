@@ -10,8 +10,9 @@ import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import { pipeline } from "stream"
 import { createGzip } from "zlib"
+import json2csv from "json2csv"
 
-import { getPDFReadableStream } from "../../lib/pdf-tools.js"
+import { getPDFReadableStream, generatePDFAsync } from "../../lib/pdf-tools.js"
 
 const blogpostRouter = express.Router()
 
@@ -219,7 +220,7 @@ blogpostRouter.get("/:id/downloadPDF", async (req, res, next) => {
     next(error)
   }
 })
-blogpostRouter.get("/downloadJSON", async (req, res, next) => {
+blogpostRouter.get("/downloadJSON", (req, res, next) => {
   try {
     // SOURCE (file on disk, http requests,...) --> DESTINATION (file on disk, terminal, http responses,...)
 
@@ -227,7 +228,7 @@ blogpostRouter.get("/downloadJSON", async (req, res, next) => {
 
     res.setHeader("Content-Disposition", "attachment; filename=books.json.gz") // This header tells the browser to open the "Save file on Disk" dialog
 
-    const source = await getBooksReadableStream()
+    const source = getBooksReadableStream()
     console.log(source)
     const transform = createGzip()
     const destination = res
@@ -235,6 +236,35 @@ blogpostRouter.get("/downloadJSON", async (req, res, next) => {
     pipeline(source, transform, destination, (err) => {
       if (err) next(err)
     })
+  } catch (error) {
+    next(error)
+  }
+})
+
+blogpostRouter.get("/downloadCSV", (req, res, next) => {
+  try {
+    // SOURCE (books.json) --> TRANSFORM (csv) --> DESTINATION (res)
+
+    res.setHeader("Content-Disposition", "attachment; filename=books.csv")
+
+    const source = getBooksReadableStream()
+    const transform = new json2csv.Transform({ fields: ["id", "category", "author", "content", "createdAt"] })
+    const destination = res
+
+    pipeline(source, transform, destination, (err) => {
+      if (err) next(err)
+    })
+    res.send("ok")
+  } catch (error) {
+    next(error)
+  }
+})
+
+blogpostRouter.get("/asyncPDF", async (req, res, next) => {
+  try {
+    const path = await generatePDFAsync("SOME TEXT")
+    // await sendEmail({ attachment: path }) // if generation of PDF is NOT async, I'm not sure that on this line here the PDF has been generated completely and correctly. If we do not await for the pdf to be generated and we send an email with that file, the result could be a corrupted PDF file
+    res.send({ path })
   } catch (error) {
     next(error)
   }

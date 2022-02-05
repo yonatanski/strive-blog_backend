@@ -25,7 +25,7 @@ export const writeAuthorJson = (content) => writeJSON(full_Authors_JSONpath, con
 
 export const saveBlogPostPictures = (fileName, contentAsBuffer) => writeFile(join(publicFolderPath, fileName), contentAsBuffer)
 
-export const getBooksReadableStream = async () => createReadStream(full_blogPost_JSONpath)
+export const getBooksReadableStream = () => createReadStream(full_blogPost_JSONpath)
 
 export const uploadFile = (req, res, next) => {
   try {
