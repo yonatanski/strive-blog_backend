@@ -50,6 +50,9 @@ import striptags from "striptags"
 import { pipeline } from "stream"
 import { promisify } from "util" // CORE MODULE
 import axios from "axios"
+import fs from "fs-extra"
+import { dirname, join } from "path"
+import { fileURLToPath } from "url"
 const fonts = {
   Roboto: {
     normal: "Helvetica",
